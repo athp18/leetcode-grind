@@ -40,8 +40,8 @@ public class Solution {
         List<String> board = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             char[] row = new char[n];
-            for (int j = 0; j < n; j++) {
-                row[j] = '.';
+            for (int k = 0; k < n; k++) {
+                row[k] = '.';
             }
             row[queens[i]] = 'Q';
             board.add(new String(row));
