@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// my first C program!
+// lol
 char** fizzBuzz(int n, int* returnSize) {
     char** result = (char**)malloc(n * sizeof(char*));
     
