@@ -1,5 +1,7 @@
 #include <vector>
 #include <string>
+// O(3^K) time complexity lol
+// O(K) space complexity (since a temp board is created of size K)
 
 class Solution {
 public:
