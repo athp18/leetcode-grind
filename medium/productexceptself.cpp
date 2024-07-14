@@ -1,23 +1,24 @@
-// To do: go back and edit this. Rn this solution is O(n^2) and i want to get it down to O(n)
 #include <iostream>
 #include <vector>
 
 class Solution {
 public:
-    vector<int> productExceptSelf(vector<int>& nums) {
+    std::vector<int> productExceptSelf(std::vector<int>& nums) {
         int length = nums.size();
         std::vector<int> output(length, 1);
-        for (int i = 0; i < nums.size(); i++) {
-            int prefix_product = 1;
-            for (int k = 0; k < i; k++) {
-                prefix_product *= nums[k];
-            }
-            int postfix_product = 1;
-            for (int j=i+1; j < length; j++) {
-                postfix_product *= nums[j];
-            }
-            output[i] = prefix_product * postfix_product;
+        std::vector<int> prefix_products(length, 1);
+        std::vector<int> postfix_products(length, 1);
+        
+        for (int i = 1; i < length; ++i) {
+            prefix_products[i] = prefix_products[i - 1] * nums[i - 1];
         }
+        for (int i = length - 2; i >= 0; --i) {
+            postfix_products[i] = postfix_products[i + 1] * nums[i + 1];
+        }
+        for (int i = 0; i < length; ++i) {
+            output[i] = prefix_products[i] * postfix_products[i];
+        }
+        
         return output;
     }
 };
