@@ -11,4 +11,4 @@ class Solution:
                 pointer_one += 1
             else:
                 pointer_two -= 1
-        return
+        return # we don't need to return anything here
