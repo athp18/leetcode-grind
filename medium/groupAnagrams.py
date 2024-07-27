@@ -15,3 +15,11 @@ class Solution:
                     else:
                         continue
         return sublists
+
+class Solution1:
+    def groupAnagrams(self, strs: List[str]) -> List[List[str]]: # more efficient solution
+        hashmap = defaultdict(list)
+        for s in strs:
+            k = ''.join(s)
+            hashmap[k].append(s)
+        return list(hashmap.values())
