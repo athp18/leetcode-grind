@@ -11,3 +11,29 @@ class Solution:
                 subsets.append(subset)
                 subsets.append([first_element] + subset)
             return subsets
+
+## OR:
+
+from copy import deepcopy as copy
+
+class Solution(object):
+    def subsets(self, nums):
+        """
+        :type nums: List[int]
+        :rtype: List[List[int]]
+        """
+        curr = []
+        subsets = []
+
+        def search(i):
+            if i == len(nums):
+                subsets.append(copy(curr))
+                print('Out of bounds error')
+                return
+            curr.append(nums[i])
+            search(i+1)
+            curr.pop()
+            search(i+1)
+        
+        search(0)
+        return subsets
