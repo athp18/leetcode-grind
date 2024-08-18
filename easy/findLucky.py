@@ -6,14 +6,6 @@ class Solution:
                 hashmap[a] += 1
             else:
                 hashmap[a] = 1
-            
-            if hashmap[a] == a:
-                MAX = max(MAX, a)
-            elif hashmap[a] > a: # handle case where number is once lucky but no longer
-                if MAX == a:
-                    MAX = -1 # no longer lucky
-
-        MAX = -1
         for k, v in hashmap.items():
             if k == v:
                 MAX = max(MAX, k)
