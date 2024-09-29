@@ -1,6 +1,7 @@
 class Solution:
     def maximalSquare(self, matrix: List[List[str]]) -> int:
-        assert matrix and matrix[0]
+        if not matrix or not matrix[0]:
+            return 0
 
         rows, cols = len(matrix), len(matrix[0])
         dp = [[0] * cols for _ in range(rows)]
