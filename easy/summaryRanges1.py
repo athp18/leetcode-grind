@@ -5,7 +5,7 @@ class Solution:
         self.traverse(nums, 0, 1, res)
         return res
     
-    def traverse(self, nums: List[int], l: int, r: int, res: List[str]):
+    def traverse(self, nums, l, r, int, res):
         if l >= len(nums):  # Check if l is out of bounds
             return
         
