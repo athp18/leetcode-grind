@@ -1,1 +1,3 @@
 LeetCode is hard
+
+## Progress
