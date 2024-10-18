@@ -2692,3 +2692,9 @@ LeetCode is hard
 - Medium: 189 problems solved (56.1%)
 - Hard: 37 problems solved (11.0%)
 - Total: 337 problems solved
+## Statistics
+
+- Easy: 111 problems solved (32.9%)
+- Medium: 189 problems solved (56.1%)
+- Hard: 37 problems solved (11.0%)
+- Total: 337 problems solved
