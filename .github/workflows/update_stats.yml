@@ -19,7 +19,7 @@ jobs:
         python-version: '3.x'
     
     - name: Generate LeetCode statistics
-      run: python leetcode_stats_generator.py
+      run: python stats_viz.py
     
     - name: Commit and push if changed
       run: |
