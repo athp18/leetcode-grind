@@ -1,0 +1,27 @@
+name: Update LeetCode Statistics
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    
+    - name: Generate LeetCode statistics
+      run: python stats_viz.py
+    
+    - name: Commit and push if changed
+      run: |
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+        git add leetcode_stats.svg README.md
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update LeetCode statistics" && git push)
