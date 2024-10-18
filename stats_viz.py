@@ -1,5 +1,6 @@
 import os
 import xml.etree.ElementTree as ET
+import base64
 
 def count_problems():
     categories = ['easy', 'medium', 'hard']
@@ -15,26 +16,38 @@ def create_svg(counts, percentages):
     
     for i, (category, count) in enumerate(counts.items()):
         y = i * 60 + 20
-        
-        # Bar
         ET.SubElement(svg, 'rect', x='100', y=str(y), width=str(percentages[category] * 2), height='40', fill=colors[category])
-        
-        # Category label
         text = ET.SubElement(svg, 'text', x='0', y=str(y + 25), fill='white')
         text.text = category.capitalize()
         
-        # Count and percentage
         count_text = ET.SubElement(svg, 'text', x='310', y=str(y + 25), fill='white', textAnchor='end')
         count_text.text = f'{count} ({percentages[category]:.1f}%)'
 
     return ET.tostring(svg, encoding='unicode')
 
+def update_readme(svg_content):
+    with open('README.md', 'r') as file:
+        readme_content = file.read()
+
+    svg_base64 = base64.b64encode(svg_content.encode('utf-8')).decode('utf-8')
+    img_tag = f'<img src="data:image/svg+xml;base64,{svg_base64}" alt="LeetCode Statistics">'
+    
+    if '![LeetCode Statistics]' in readme_content:
+        readme_content = readme_content.replace('![LeetCode Statistics]', img_tag)
+    elif '<img src="data:image/svg+xml;base64,' in readme_content:
+        start = readme_content.index('<img src="data:image/svg+xml;base64,')
+        end = readme_content.index('>', start) + 1
+        readme_content = readme_content[:start] + img_tag + readme_content[end:]
+    else:
+        readme_content = readme_content.replace('## Progress', f'## Progress\n\n{img_tag}')
+    
+    with open('README.md', 'w') as file:
+        file.write(readme_content)
+
 def main():
     counts, percentages = count_problems()
     svg_content = create_svg(counts, percentages)
-    
-    with open('leetcode_stats.svg', 'w') as f:
-        f.write(svg_content)
+    update_readme(svg_content)
 
 if __name__ == '__main__':
     main()
