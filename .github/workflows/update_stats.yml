@@ -19,15 +19,17 @@ jobs:
         with:
           python-version: '3.x'
       
-      - name: Generate LeetCode statistics
-        run: python stats_viz.py  # Updated path
+      - name: Generate LeetCode statistics and update README
+        run: python stats_viz.py
       
-      - name: Commit and push if changed
+      - name: Commit and push changes
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git add leetcode_stats.svg README.md
-          git diff --quiet && git diff --staged --quiet || (
-            git commit -m "Update LeetCode statistics" &&
+          if ! git diff --cached --quiet; then
+            git commit -m "Update LeetCode statistics"
             git push
-          )
+          else
+            echo "No changes to commit."
+          fi
