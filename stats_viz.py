@@ -98,4 +98,4 @@ def main():
     print("README.md has been updated with the latest LeetCode statistics.")
 
 if __name__ == '__main__':
-    main()
+    #main()
