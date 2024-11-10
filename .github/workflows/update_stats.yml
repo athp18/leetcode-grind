@@ -5,9 +5,10 @@ on:
     branches: [ main ]
     # Only run when files in the LeetCode solutions directory change
     paths:
-      - 'leetcode/**'        # Adjust this path to match your LeetCode solutions directory
-      - 'solutions/**'       # Add additional paths if needed
-  workflow_dispatch:         # Keep manual trigger option
+      - 'easy/**'       
+      - 'hard/**'   
+      - 'medium/**'
+  workflow_dispatch:     
 
 jobs:
   update-stats:
