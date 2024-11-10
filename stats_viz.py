@@ -1,114 +1,75 @@
 import os
 import base64
 import xml.etree.ElementTree as ET
-import logging
-
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-
-def validate_solution_file(filepath):
-    """
-    Validate if a file is a legitimate solution file.
-    """
-    valid_extensions = {'.py', '.java', '.cpp', '.js', '.go', '.ts'}
-    
-    # Check file extension
-    _, ext = os.path.splitext(filepath)
-    if ext not in valid_extensions:
-        return False
-    
-    # Check file size (shouldn't be empty)
-    if os.path.getsize(filepath) == 0:
-        logging.warning(f"Empty file found: {filepath}")
-        return False
-    
-    # Check if it's a hidden file
-    if os.path.basename(filepath).startswith('.'):
-        return False
-    
-    return True
-
-def get_solution_files(directory):
-    """
-    Get all valid solution files in a directory.
-    """
-    solution_files = []
-    if not os.path.exists(directory):
-        logging.error(f"Directory does not exist: {directory}")
-        return []
-    
-    for file in os.listdir(directory):
-        filepath = os.path.join(directory, file)
-        if os.path.isfile(filepath) and validate_solution_file(filepath):
-            solution_files.append(filepath)
-    
-    return solution_files
 
 def count_problems():
-    """
-    Count problems in each difficulty category.
-    """
-    base_dir = 'leetcode_grind'
     categories = ['easy', 'medium', 'hard']
     counts = {}
     
-    if not os.path.exists(base_dir):
-        logging.error(f"Base directory '{base_dir}' does not exist!")
-        return {}, {}, 0
-    
-    # Count valid solution files in each category
+    # Debug print
+    print("Current working directory:", os.getcwd())
     for cat in categories:
-        path = os.path.join(base_dir, cat)
-        solution_files = get_solution_files(path)
-        counts[cat] = len(solution_files)
-        
-        # Log the files found
-        logging.info(f"Found {counts[cat]} valid solutions in {cat}:")
-        for file in solution_files:
-            logging.info(f"  - {os.path.basename(file)}")
-    
+        path = "./"+cat
+        if not os.path.exists(path):
+            print(f"Warning: Directory {path} does not exist!")
+            counts[cat] = 0
+        else:
+            try:
+                counts[cat] = len(os.listdir(path))
+                print(f"Found {counts[cat]} files in {path}")
+            except Exception as e:
+                print(f"Error reading directory {path}: {str(e)}")
+                counts[cat] = 0
+            
     total = sum(counts.values())
-    if total == 0:
-        logging.warning("No valid solution files found!")
-        return counts, {cat: 0 for cat in categories}, 0
+    print(f"Total problems found: {total}")
     
-    percentages = {cat: (count / total) * 100 for cat, count in counts.items()}
+    # Avoid division by zero
+    percentages = {cat: (count / total) * 100 if total > 0 else 0 for cat, count in counts.items()}
     return counts, percentages, total
 
 def create_svg(counts, percentages):
-    """
-    Create SVG visualization of problem counts.
-    """
     svg_width = 500
     bar_height = 40
     spacing = 20
     margin = 50
-    svg_height = (bar_height + spacing) * len(counts) + margin
+    svg_height = (bar_height + spacing) * len(counts) + margin * 2
     
+    # Create SVG element
     svg = ET.Element('svg', {
         'width': str(svg_width),
         'height': str(svg_height),
-        'xmlns': 'http://www.w3.org/2000/svg'
+        'xmlns': 'http://www.w3.org/2000/svg',
+        'viewBox': f'0 0 {svg_width} {svg_height}'
     })
     
-    # Add title and description for accessibility
-    title = ET.SubElement(svg, 'title')
-    title.text = 'LeetCode Problem Solving Statistics'
+    # Add title
+    title = ET.SubElement(svg, 'text', {
+        'x': str(svg_width // 2),
+        'y': str(margin // 2),
+        'text-anchor': 'middle',
+        'font-size': '18',
+        'font-weight': 'bold'
+    })
+    title.text = 'LeetCode Progress'
     
-    colors = {
-        'easy': '#4CAF50',
-        'medium': '#FFC107',
-        'hard': '#F44336'
-    }
+    colors = {'easy': '#4CAF50', 'medium': '#FFC107', 'hard': '#F44336'}
     
     for i, (category, count) in enumerate(counts.items()):
         y = margin + i * (bar_height + spacing)
-        bar_length = percentages[category] * 3  # Scale factor for visibility
+        # Scale the bar length based on percentage (max width = 300px)
+        bar_length = min(300, percentages[category] * 3)
         
-        # Bar
+        # Background bar (grey)
+        ET.SubElement(svg, 'rect', {
+            'x': '150',
+            'y': str(y),
+            'width': '300',
+            'height': str(bar_height),
+            'fill': '#f0f0f0'
+        })
+        
+        # Progress bar
         ET.SubElement(svg, 'rect', {
             'x': '150',
             'y': str(y),
@@ -117,41 +78,42 @@ def create_svg(counts, percentages):
             'fill': colors[category]
         })
         
-        # Labels
-        ET.SubElement(svg, 'text', {
+        # Category label
+        label = ET.SubElement(svg, 'text', {
             'x': '140',
-            'y': str(y + bar_height / 2 + 5),
+            'y': str(y + bar_height // 2 + 5),
             'fill': 'black',
             'font-size': '14',
             'text-anchor': 'end'
-        }).text = category.capitalize()
+        })
+        label.text = category.capitalize()
         
-        ET.SubElement(svg, 'text', {
-            'x': str(150 + bar_length + 10),
-            'y': str(y + bar_height / 2 + 5),
+        # Percentage and count label
+        count_label = ET.SubElement(svg, 'text', {
+            'x': str(460),
+            'y': str(y + bar_height // 2 + 5),
             'fill': 'black',
             'font-size': '14',
-            'text-anchor': 'start'
-        }).text = f"{percentages[category]:.1f}%"
-        
-        ET.SubElement(svg, 'text', {
-            'x': '155',
-            'y': str(y + bar_height / 2 + 5),
-            'fill': 'white',
-            'font-size': '14',
-            'text-anchor': 'start'
-        }).text = str(count)
+            'text-anchor': 'end'
+        })
+        count_label.text = f"{count} ({percentages[category]:.1f}%)"
     
-    return ET.tostring(svg, encoding='unicode')
+    try:
+        return ET.tostring(svg, encoding='unicode')
+    except Exception as e:
+        print(f"Error generating SVG: {str(e)}")
+        return None
 
 def update_readme(svg_content, counts, percentages, total):
-    """
-    Update README.md with new statistics.
-    """
-    svg_base64 = base64.b64encode(svg_content.encode('utf-8')).decode('utf-8')
-    img_tag = f'<img src="data:image/svg+xml;base64,{svg_base64}" alt="LeetCode Statistics">'
+    if svg_content is None:
+        print("Error: No SVG content to update")
+        return
     
-    stats_section = f"""
+    try:
+        svg_base64 = base64.b64encode(svg_content.encode('utf-8')).decode('utf-8')
+        img_tag = f'<img src="data:image/svg+xml;base64,{svg_base64}" alt="LeetCode Statistics">'
+        
+        stats_section = f"""
 <!-- LEETCODE_STATS_START -->
 ## Statistics
 - **Easy:** {counts['easy']} problems solved ({percentages['easy']:.1f}%)
@@ -160,64 +122,53 @@ def update_readme(svg_content, counts, percentages, total):
 - **Total:** {total} problems solved
 <!-- LEETCODE_STATS_END -->
 """
-    
-    progress_section = f"""
+        
+        progress_section = f"""
 <!-- LEETCODE_SVG_START -->
 ## Progress
 {img_tag}
 {stats_section}
 <!-- LEETCODE_SVG_END -->
 """
-    
-    readme_path = 'README.md'
-    
-    try:
-        with open(readme_path, 'r', encoding='utf-8') as file:
+        
+        # Create README.md if it doesn't exist
+        if not os.path.exists('README.md'):
+            print("Creating new README.md file")
+            with open('README.md', 'w', encoding='utf-8') as file:
+                file.write('# LeetCode Progress Tracker\n\n')
+        
+        # Read and update existing README
+        with open('README.md', 'r', encoding='utf-8') as file:
             readme_content = file.read()
         
-        # Replace existing Progress section between markers
         if '<!-- LEETCODE_SVG_START -->' in readme_content:
+            print("Updating existing progress section")
             start_marker = '<!-- LEETCODE_SVG_START -->'
             end_marker = '<!-- LEETCODE_SVG_END -->'
             start_index = readme_content.index(start_marker)
             end_index = readme_content.index(end_marker) + len(end_marker)
             readme_content = readme_content[:start_index] + progress_section + readme_content[end_index:]
         else:
-            # If markers not found, append the Progress section at the end
+            print("Adding new progress section")
             readme_content += progress_section
         
-        with open(readme_path, 'w', encoding='utf-8') as file:
+        with open('README.md', 'w', encoding='utf-8') as file:
             file.write(readme_content)
-        
-        logging.info("README.md has been successfully updated")
+            
+        print("README.md updated successfully")
         
     except Exception as e:
-        logging.error(f"Error updating README.md: {str(e)}")
-        raise
+        print(f"Error updating README: {str(e)}")
 
 def main():
     try:
-        logging.info("Starting LeetCode statistics update...")
-        
+        print("Starting LeetCode statistics update...")
         counts, percentages, total = count_problems()
-        if total == 0:
-            logging.error("No valid solutions found. Please check your directory structure.")
-            return
-        
         svg_content = create_svg(counts, percentages)
         update_readme(svg_content, counts, percentages, total)
-        
-        logging.info(f"""
-Statistics update completed:
-- Easy: {counts['easy']} solutions
-- Medium: {counts['medium']} solutions
-- Hard: {counts['hard']} solutions
-- Total: {total} solutions
-""")
-        
+        print("Process completed successfully")
     except Exception as e:
-        logging.error(f"Error in main execution: {str(e)}")
-        raise
+        print(f"Error in main process: {str(e)}")
 
 if __name__ == '__main__':
     main()
