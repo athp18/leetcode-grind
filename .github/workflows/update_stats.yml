@@ -3,7 +3,11 @@ name: Update LeetCode Statistics
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
+    # Only run when files in the LeetCode solutions directory change
+    paths:
+      - 'leetcode/**'        # Adjust this path to match your LeetCode solutions directory
+      - 'solutions/**'       # Add additional paths if needed
+  workflow_dispatch:         # Keep manual trigger option
 
 jobs:
   update-stats:
