@@ -24,16 +24,49 @@ jobs:
         with:
           python-version: '3.x'
       
-      - name: Generate LeetCode statistics and update README
+      - name: Install Dependencies
+        run: |
+          # If your script has dependencies, install them here
+          # For example:
+          # pip install -r requirements.txt
+          pass
+      
+      - name: Generate LeetCode statistics and save SVG
         run: python stats_viz.py
       
-      - name: Commit and push changes
+      - name: Embed LeetCode Stats in README
+        run: |
+          MARKER_START="<!-- LEETCODE_STATS_START -->"
+          MARKER_END="<!-- LEETCODE_STATS_END -->"
+          IMAGE_MARKDOWN="![LeetCode Statistics](leetcode_stats.svg)"
+          
+          if grep -q "$MARKER_START" README.md; then
+            echo "Updating existing LeetCode statistics section in README.md"
+            # Use awk to replace the content between the markers
+            awk -v start="$MARKER_START" -v end="$MARKER_END" -v img="$IMAGE_MARKDOWN" '
+              $0 ~ start {print; print img; in_section=1; next}
+              $0 ~ end {print; in_section=0; next}
+              !in_section {print}
+            ' README.md > README.md.tmp && mv README.md.tmp README.md
+          else
+            echo "Adding new LeetCode statistics section to README.md"
+            cat <<EOL >> README.md
+
+$MARKER_START
+$IMAGE_MARKDOWN
+$MARKER_END
+
+EOL
+          fi
+
+      - name: Commit and Push Changes
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git add leetcode_stats.svg README.md
+          # Check if there are any changes to commit
           if ! git diff --cached --quiet; then
-            git commit -m "Update LeetCode statistics"
+            git commit -m "Update LeetCode statistics [skip ci]"
             git push
           else
             echo "No changes to commit."
