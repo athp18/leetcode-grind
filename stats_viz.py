@@ -1,5 +1,4 @@
 import os
-import base64
 import xml.etree.ElementTree as ET
 
 def count_problems():
@@ -9,13 +8,13 @@ def count_problems():
     # Debug print
     print("Current working directory:", os.getcwd())
     for cat in categories:
-        path = "./"+cat
+        path = f"./{cat}"
         if not os.path.exists(path):
             print(f"Warning: Directory {path} does not exist!")
             counts[cat] = 0
         else:
             try:
-                counts[cat] = len(os.listdir(path))
+                counts[cat] = len([file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))])
                 print(f"Found {counts[cat]} files in {path}")
             except Exception as e:
                 print(f"Error reading directory {path}: {str(e)}")
@@ -90,7 +89,7 @@ def create_svg(counts, percentages):
         
         # Percentage and count label
         count_label = ET.SubElement(svg, 'text', {
-            'x': str(460),
+            'x': '460',
             'y': str(y + bar_height // 2 + 5),
             'fill': 'black',
             'font-size': '14',
@@ -104,68 +103,17 @@ def create_svg(counts, percentages):
         print(f"Error generating SVG: {str(e)}")
         return None
 
-def update_readme(svg_content, counts, percentages, total):
-    if svg_content is None:
-        print("Error: No SVG content to update")
-        return
-    
-    try:
-        svg_base64 = base64.b64encode(svg_content.encode('utf-8')).decode('utf-8')
-        img_tag = f'<img src="data:image/svg+xml;base64,{svg_base64}" alt="LeetCode Statistics">'
-        
-        stats_section = f"""
-<!-- LEETCODE_STATS_START -->
-## Statistics
-- **Easy:** {counts['easy']} problems solved ({percentages['easy']:.1f}%)
-- **Medium:** {counts['medium']} problems solved ({percentages['medium']:.1f}%)
-- **Hard:** {counts['hard']} problems solved ({percentages['hard']:.1f}%)
-- **Total:** {total} problems solved
-<!-- LEETCODE_STATS_END -->
-"""
-        
-        progress_section = f"""
-<!-- LEETCODE_SVG_START -->
-## Progress
-{img_tag}
-{stats_section}
-<!-- LEETCODE_SVG_END -->
-"""
-        
-        # Create README.md if it doesn't exist
-        if not os.path.exists('README.md'):
-            print("Creating new README.md file")
-            with open('README.md', 'w', encoding='utf-8') as file:
-                file.write('# LeetCode Progress Tracker\n\n')
-        
-        # Read and update existing README
-        with open('README.md', 'r', encoding='utf-8') as file:
-            readme_content = file.read()
-        
-        if '<!-- LEETCODE_SVG_START -->' in readme_content:
-            print("Updating existing progress section")
-            start_marker = '<!-- LEETCODE_SVG_START -->'
-            end_marker = '<!-- LEETCODE_SVG_END -->'
-            start_index = readme_content.index(start_marker)
-            end_index = readme_content.index(end_marker) + len(end_marker)
-            readme_content = readme_content[:start_index] + progress_section + readme_content[end_index:]
-        else:
-            print("Adding new progress section")
-            readme_content += progress_section
-        
-        with open('README.md', 'w', encoding='utf-8') as file:
-            file.write(readme_content)
-            
-        print("README.md updated successfully")
-        
-    except Exception as e:
-        print(f"Error updating README: {str(e)}")
-
 def main():
     try:
         print("Starting LeetCode statistics update...")
         counts, percentages, total = count_problems()
         svg_content = create_svg(counts, percentages)
-        update_readme(svg_content, counts, percentages, total)
+        if svg_content:
+            with open('leetcode_stats.svg', 'w', encoding='utf-8') as f:
+                f.write(svg_content)
+            print("SVG image saved as leetcode_stats.svg")
+        else:
+            print("Failed to generate SVG content")
         print("Process completed successfully")
     except Exception as e:
         print(f"Error in main process: {str(e)}")
