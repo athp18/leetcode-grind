@@ -1,36 +1,47 @@
-from collections import deque
-from typing import List
-
 class Solution:
     def orangesRotting(self, grid: List[List[int]]) -> int:
-        rows, cols = len(grid), len(grid[0])
-        queue = deque()
+        m, n = len(grid), len(grid[0])
+        rotten = fresh = minutes = 0
+        queue = []
         
-        fresh_oranges = 0
-
-        for r in range(rows):
-            for c in range(cols):
-                if grid[r][c] == 2:
-                    queue.append((r, c, 0))
-                elif grid[r][c] == 1:
-                    fresh_oranges += 1
+        #
+        for i in range(m):
+            for j in range(n):
+                cell = grid[i][j]
+                if cell == 1:
+                    fresh += 1
+                elif cell == 2:
+                    queue.append(i * n + j)
+                    rotten += 1
         
-        # Directions for adjacent cells (up, down, left, right)
-        dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-
-        # Variable to keep track of time elapsed
-        time_elapsed = 0
-
-        while queue:
-            r, c, time = queue.popleft()
-            time_elapsed = max(time_elapsed, time)
-            for dr, dc in dirs:
-                nr, nc = r + dr, c + dc
-                if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] == 1:
-                    grid[nr][nc] = 2
-                    fresh_oranges -= 1
-                    queue.append((nr, nc, time + 1))
-        if fresh_oranges > 0:
+        # Early exit checks
+        if fresh == 0: 
+            return 0
+        if rotten == 0: 
             return -1
-        else:
-            return time_elapsed
+        
+        #start index for current minute's batch
+        start = 0
+        
+        #process oranges level by level without deque
+        while start < len(queue):
+            size = len(queue) - start
+            
+            for _ in range(size):
+                pos = queue[start]
+                r, c = divmod(pos, n)
+                start += 1
+                
+                for nr, nc in ((r+1,c), (r-1,c), (r,c+1), (r,c-1)):
+                    if (0 <= nr < m and 0 <= nc < n and 
+                        grid[nr][nc] == 1):
+                        grid[nr][nc] = 2
+                        queue.append(nr * n + nc)
+                        fresh -= 1
+            
+            minutes += 1
+            
+            if fresh == 0:
+                return minutes
+                
+        return -1
